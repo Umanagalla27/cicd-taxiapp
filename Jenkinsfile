@@ -17,7 +17,7 @@ environment {
         stage("build"){
             steps {
                  echo "----------- build started ----------"
-                sh 'mvn clean package'
+                sh 'mvn package'
                  echo "----------- build complted ----------"
             }
         }

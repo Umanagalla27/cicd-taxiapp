@@ -91,7 +91,7 @@ resource "aws_iam_role_policy_attachment" "node_policy_3" {
 }
 
 resource "aws_iam_role_policy_attachment" "eks_access" {
-  role       = "jenkins-ec2-role"
+  role       = data.aws_iam_role.jenkins_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
@@ -106,10 +106,33 @@ resource "aws_eks_cluster" "eks" {
     subnet_ids = data.aws_subnets.eks_subnets.ids
   }
 
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.eks_cluster_policy
   ]
 }
+
+data "aws_iam_role" "jenkins_role" {
+  name = "jenkins-ec2-role"
+}
+
+resource "aws_ec2_tag" "subnet_tags_eks" {
+  for_each    = toset(data.aws_subnets.eks_subnets.ids)
+  resource_id = each.value
+  key         = "kubernetes.io/cluster/taxi-eks-cluster"
+  value       = "shared"
+}
+
+resource "aws_ec2_tag" "subnet_tags_elb" {
+  for_each    = toset(data.aws_subnets.eks_subnets.ids)
+  resource_id = each.value
+  key         = "kubernetes.io/role/elb"
+  value       = "1"
+}
+
 
 ########################
 # NODE GROUP
@@ -126,13 +149,50 @@ resource "aws_eks_node_group" "nodes" {
     min_size     = 1
   }
 
-  instance_types = ["c7i-flex.large"]
+  instance_types = ["t3.medium", "t3a.medium", "t2.medium"]
 
   depends_on = [
     aws_iam_role_policy_attachment.node_policy_1,
     aws_iam_role_policy_attachment.node_policy_2,
     aws_iam_role_policy_attachment.node_policy_3
   ]
+}
+
+########################
+# ACCESS ENTRY (FIXES UNAUTHORIZED)
+########################
+resource "aws_eks_access_entry" "jenkins_access" {
+  cluster_name      = aws_eks_cluster.eks.name
+  principal_arn     = "arn:aws:iam::783476056561:role/jenkins-ec2-role"
+  kubernetes_groups = ["taxi-admin"]
+  type              = "STANDARD"
+}
+
+resource "aws_eks_access_entry" "admin_user_access" {
+  cluster_name      = aws_eks_cluster.eks.name
+  principal_arn     = "arn:aws:iam::783476056561:user/TaxiApp-DevOps-Admin"
+  kubernetes_groups = ["taxi-admin"]
+  type              = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "jenkins_admin_policy" {
+  cluster_name  = aws_eks_cluster.eks.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::783476056561:role/jenkins-ec2-role"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
+resource "aws_eks_access_policy_association" "admin_user_policy" {
+  cluster_name  = aws_eks_cluster.eks.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = "arn:aws:iam::783476056561:user/TaxiApp-DevOps-Admin"
+
+  access_scope {
+    type = "cluster"
+  }
 }
 
 ########################

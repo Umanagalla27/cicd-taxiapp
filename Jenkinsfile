@@ -1,15 +1,15 @@
 pipeline {
     agent {
         node {
-            label 'maven'
+            label 'taxi-app'
         }
     }
 environment {
     PATH = "/opt/apache-maven-3.8.9/bin:$PATH"
-    (SONAR_TOKEN = credentials('SONAR_TOKEN'))
+    SONAR_TOKEN = credentials('SONAR_TOKEN')
     AWS_REGION = 'us-east-1'
-    S3_BUCKET = 'my-war-bucket'
-    ECR_REPO = '642391958117.dkr.ecr.us-east-1.amazonaws.com/taxi-booking-app'
+    S3_BUCKET = 'my-war-bucket-eaa5fc35'
+    ECR_REPO = '783476056561.dkr.ecr.us-east-1.amazonaws.com/taxi-booking-app'
     IMAGE_TAG = "v1.${BUILD_NUMBER}"
     
 }
@@ -32,13 +32,7 @@ environment {
             steps {
                 script {
                     // Run SonarQube analysis
-                    sh """
-                    mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                    -Dsonar.projectKey=taxi-app-taxi-app_taxi \
-                    -Dsonar.organization=taxi-app-taxi-app \
-                    -Dsonar.host.url=https://sonarcloud.io \
-                    -Dsonar.token=${SONAR_TOKEN}
-                    """
+                    sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app1234_taxi -Dsonar.organization=taxi-app1234 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN'
                 }
             }
         }
@@ -61,7 +55,7 @@ environment {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $ECR_REPO
+                docker login --username AWS --password-stdin 783476056561.dkr.ecr.us-east-1.amazonaws.com
                 '''
             }
         }

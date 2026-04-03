@@ -213,10 +213,10 @@
   </dependencyManagement>
 
   <scm>
-    <connection>scm:git:git@github.com:jleetutorial/maven-project.git</connection>
-    <developerConnection>scm:git:git@github.com:jleetutorial/maven-project.git</developerConnection>
+    <connection>scm:git:https://github.com/Umanagalla27/cicd-taxiapp.git</connection>
+    <developerConnection>scm:git:https://github.com/Umanagalla27/cicd-taxiapp.git</developerConnection>
+    <url>https://github.com/Umanagalla27/cicd-taxiapp</url>
     <tag>HEAD</tag>
-    <url>http://github.com/jleetutorial/maven-project</url>
   </scm>
 
   <prerequisites>

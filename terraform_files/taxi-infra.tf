@@ -27,7 +27,7 @@ resource "random_id" "bucket_suffix" {
 ########################
 resource "tls_private_key" "taxi_key" {
   algorithm = "RSA"
-  rsa_bits  = 4096
+  rsa_bits  = 2048
 }
 
 resource "aws_key_pair" "taxi" {
@@ -216,6 +216,11 @@ resource "aws_instance" "jenkins_master" {
 
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
   tags = {
     Name = "jenkins-master"
   }
@@ -230,6 +235,11 @@ resource "aws_instance" "jenkins_slave" {
   vpc_security_group_ids = [aws_security_group.demo-sg.id]
 
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
 
   tags = {
     Name = "jenkins-slave"

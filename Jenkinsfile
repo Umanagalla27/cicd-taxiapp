@@ -15,8 +15,8 @@ environment {
             steps {
                 script {
                     echo "----------- fetching dynamic infra details ----------"
-                    // Find only the LATEST S3 bucket by name pattern or tags (using awk to ensure only one value)
-                    env.S3_BUCKET = sh(script: "aws s3api list-buckets --query \"sort_by(Buckets[?starts_with(Name, 'my-war-bucket-')], &CreationDate)[-1].Name\" --output text | awk '{print \$1}'", returnStdout: true).trim()
+                    // Find only the FIRST S3 bucket by name pattern or tags (using | [0] to ensure only one value)
+                    env.S3_BUCKET = sh(script: "aws s3api list-buckets --query \"Buckets[?starts_with(Name, 'my-war-bucket-')].Name | [0]\" --output text", returnStdout: true).trim()
                     
                     // Find ECR repo URL (always named taxi-booking-app)
                     env.ECR_REPO_URL = sh(script: "aws ecr describe-repositories --repository-names taxi-booking-app --query 'repositories[0].repositoryUri' --output text", returnStdout: true).trim()

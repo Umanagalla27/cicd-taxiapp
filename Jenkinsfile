@@ -15,8 +15,8 @@ environment {
             steps {
                 script {
                     echo "----------- fetching dynamic infra details ----------"
-                    // Find only the LATEST S3 bucket by name pattern or tags
-                    env.S3_BUCKET = sh(script: "aws s3api list-buckets --query \"sort_by(Buckets[?starts_with(Name, 'my-war-bucket-')], &CreationDate)[-1].Name\" --output text", returnStdout: true).trim()
+                    // Find only the LATEST S3 bucket by name pattern or tags (using awk to ensure only one value)
+                    env.S3_BUCKET = sh(script: "aws s3api list-buckets --query \"sort_by(Buckets[?starts_with(Name, 'my-war-bucket-')], &CreationDate)[-1].Name\" --output text | awk '{print \$1}'", returnStdout: true).trim()
                     
                     // Find ECR repo URL (always named taxi-booking-app)
                     env.ECR_REPO_URL = sh(script: "aws ecr describe-repositories --repository-names taxi-booking-app --query 'repositories[0].repositoryUri' --output text", returnStdout: true).trim()
@@ -54,8 +54,8 @@ environment {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis
-                    sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app1234_taxi -Dsonar.organization=taxi-app1234 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN'
+                    // Run SonarQube analysis with binary paths specified
+                    sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app1234_taxi -Dsonar.organization=taxi-app1234 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN -Dsonar.java.binaries=**/target/classes'
                 }
             }
         }

@@ -55,7 +55,7 @@ environment {
             steps {
                 script {
                     // Run SonarQube analysis with binary paths specified
-                    sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app1234_taxi -Dsonar.organization=taxi-app1234 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN -Dsonar.java.binaries=**/target/classes'
+                    sh 'mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app1234_taxi -Dsonar.organization=taxi-app1234 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN -Dsonar.java.binaries=server/target/classes'
                 }
             }
         }

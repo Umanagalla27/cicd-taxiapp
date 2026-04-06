@@ -1,49 +1,59 @@
-# CI/CD Taxi App
+# README
 
-## Introduction
-This repository contains the code for a taxi application that implements Continuous Integration and Continuous Deployment (CI/CD) principles. The goal of this project is to streamline the development process and ensure that updates to the application are delivered quickly and safely.
+## Overview
 
-## Features
-- **Real-time tracking** of taxi locations
-- **User-friendly interface** for both drivers and passengers
-- **Automated testing** to ensure code reliability
-- **Deployment scripts** for continuous integration
+This project is a CI/CD pipeline for the Taxi App. The pipeline automates the build, test, and deployment processes, ensuring that changes can be delivered quickly and efficiently.
+
+**Key Features:**
+
+1. **Automated Deployment**: Automatically deploy the latest build to production.
+2. **Continuous Integration**: Build and test code changes automatically.
+3. **Rollback Capability**: Ability to rollback to the previous version if needed.
 
 ## Getting Started
-### Prerequisites
-Ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (version 12 or later)
-- [Docker](https://www.docker.com/) for containerization
 
-### Installation
+To get started with this project, follow these instructions:
+
+### Prerequisites
+
+- Git
+- Node.js
+- Docker
+
+### Installation Steps
+
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/Umanagalla27/cicd-taxiapp.git
-    cd cicd-taxiapp
-    ```
-2. Install dependencies:
-    ```bash
-    npm install
-    ```
-3. Run the application:
-    ```bash
-    npm start
-    ```
+   ```bash
+   git clone https://github.com/Umanagalla27/cicd-taxiapp.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd cicd-taxiapp
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+## Usage
+
+To run the application, use the following command:
+```bash
+npm start
+```
 
 ## Contributing
-We welcome contributions! Please follow these steps:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Make your changes and commit them (`git commit -m 'Add a new feature'`).
-4. Push to your branch (`git push origin feature/YourFeature`).
-5. Create a pull request.
+
+If you want to contribute to this project, please send a pull request with your changes. Make sure to follow the standard coding conventions.
 
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-- Thanks to all contributors and maintainers!
+## Contact
 
----
+For any inquiries, please contact:
 
-*For questions, feel free to contact [Umanagalla27](https://github.com/Umanagalla27).*
+- **Your Name**: your.email@example.com
+
+Thank you for using the CI/CD Taxi App!

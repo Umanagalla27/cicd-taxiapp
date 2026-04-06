@@ -477,6 +477,8 @@ After your project completion, you must destroy/uninstall servers & clusters to 
 ________________________________________
 ### 🖼️ OUTPUTS:
 
+<img width="1910" height="942" alt="Screenshot 2026-04-06 201923" src="https://github.com/user-attachments/assets/5122578e-ffa4-4e96-86ff-2bad006cbe3c" />1`errrrro
+
 <img width="1908" height="619" alt="Screenshot 2026-03-22 171618" src="https://github.com/user-attachments/assets/c145ac57-7981-4199-9035-c05336d0c138" />
  <img width="1909" height="607" alt="Screenshot 2026-03-22 171637" src="https://github.com/user-attachments/assets/e3fbb6b3-7162-4821-8fa0-6ccd777516da" />   <img width="1911" height="827" alt="Screenshot 2026-03-22 171947" src="https://github.com/user-attachments/assets/f08efa37-f6cc-42c4-ba25-a6d0f6f8f6b2" /> <img  width="1910" height="957" alt="Screenshot 2026-04-06 200029" src="https://github.com/user-attachments/assets/a4164fa6-3e5d-423f-a4bf-e266a76a69c6" /> <img
 width="1904" height="964" alt="Screenshot 2026-04-06 185931" src="https://github.com/user-attachments/assets/28b3d16d-324d-48ea-a7f8-98fe27a6491f" /> <img width="1911" height="958" alt="Screenshot 2026-04-06 184956" src="https://github.com/user-attachments/assets/8eb3bd34-8384-4cbf-acb0-091278229c66" /> <img width="1908" height="985" alt="Screenshot 2026-04-06 185016" src="https://github.com/user-attachments/assets/4f5dcf9f-5ad3-4966-8962-bce314d380d8" /> <img width="1887" height="923" alt="Screenshot 2026-04-06 185231" src="https://github.com/user-attachments/assets/fdfc2b4f-4cb7-4b1f-8fc0-3da952cb77ac" /> <img

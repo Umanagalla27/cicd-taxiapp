@@ -1,4 +1,4 @@
-🚖 CICD Main Project: Taxi Booking
+🚖 **CICD Main Project: Taxi Booking**
 
 💻 **Step 1: Local Environment & Repository Setup**
 
@@ -25,10 +25,10 @@ cd cicd-taxiapp/
 ls
 
 git remote add origin <your GitHub repository URL>
-(Example: git remote add origin https://github.com/sairamguthula14/cicd-taxiapp.git)
+(Example: git remote add origin https://github.com/Umanagalla27/cicd-taxiapp.git)
 
 git remote set-url origin <your GitHub repository URL>
-(Example: git remote set-url origin https://github.com/sairamguthula14/cicd-taxiapp.git)
+(Example: git remote set-url origin https://github.com/Umanagalla27/cicd-taxiapp.git)
 
 git branch -M main (change to the main branch)
 
@@ -92,7 +92,7 @@ Now go to your Ansible server, execute the below commands, and run the Ansible p
 
 sudo -i
 
-Clone the repo on the Ansible server: git clone https://github.com/sairamguthula14/cicd-taxiapp.git
+Clone the repo on the Ansible server: git clone https://github.com/Umanagalla27/cicd-taxiapp.git
 
 cd Ansible
 
@@ -397,17 +397,6 @@ Run on VS Code under the EKS folder: terraform destroy --auto-approve
 <img width="1911" height="958" alt="Screenshot 2026-04-06 184956" src="https://github.com/user-attachments/assets/8eb3bd34-8384-4cbf-acb0-091278229c66" />
 <img width="1908" height="985" alt="Screenshot 2026-04-06 185016" src="https://github.com/user-attachments/assets/4f5dcf9f-5ad3-4966-8962-bce314d380d8" />
 <img width="1887" height="923" alt="Screenshot 2026-04-06 185231" src="https://github.com/user-attachments/assets/fdfc2b4f-4cb7-4b1f-8fc0-3da952cb77ac" />
-🖼️ OUTPUTS:
-
-   <img width="1908" height="619" alt="Screenshot 2026-03-22 171618" src="https://github.com/user-attachments/assets/df5cdb4e-9c6e-4d8f-87a0-909041a11ae2" />
-   <img width="1909" height="607" alt="Screenshot 2026-03-22 171637" src="https://github.com/user-attachments/assets/e3fbb6b3-7162-4821-8fa0-6ccd777516da" />
-   <img width="1911" height="827" alt="Screenshot 2026-03-22 171947" src="https://github.com/user-attachments/assets/f08efa37-f6cc-42c4-ba25-a6d0f6f8f6b2" />
-   <img width="1907" height="958" alt="Screenshot 2026-04-06 182511" src="https://github.com/user-attachments/assets/c5b2327e-8494-4b30-8c33-3bf5291086d3" />
-   <img width="1904" height="964" alt="Screenshot 2026-04-06 185931" src="https://github.com/user-attachments/assets/28b3d16d-324d-48ea-a7f8-98fe27a6491f" />
-   <img width="1911" height="958" alt="Screenshot 2026-04-06 184956" src="https://github.com/user-attachments/assets/8eb3bd34-8384-4cbf-acb0-091278229c66" />
-   <img width="1908" height="985" alt="Screenshot 2026-04-06 185016" src="https://github.com/user-attachments/assets/4f5dcf9f-5ad3-4966-8962-bce314d380d8" />
-   <img width="1887" height="923" alt="Screenshot 2026-04-06 185231" src="https://github.com/user-attachments/assets/fdfc2b4f-4cb7-4b1f-8fc0-3da952cb77ac" />
-
 
 
 

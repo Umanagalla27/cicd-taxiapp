@@ -1,400 +1,411 @@
-CICD Taxi Booking Application Deployment Pipeline
-Summary of changes
-This project sets up a complete CI/CD pipeline for deploying a taxi booking web application using Jenkins, Docker, Kubernetes (EKS), and monitoring tools
-Infrastructure is provisioned using Terraform for EC2 instances (Ansible server, Jenkins master, Jenkins slave), S3 bucket, ECR repository, and EKS cluster
-Ansible automates the configuration of Jenkins master and slave servers
-Jenkins pipeline handles build, test, code quality analysis (SonarCloud), Docker image creation, ECR push, and Kubernetes deployment
-Monitoring stack includes Prometheus and Grafana deployed on EKS for observability
-The application is a Java Maven web application packaged as WAR and containerized with Tomcat
-Execution Steps
-Step 1: Local Environment Setup
-Prepare the local development environment with required tools and repository structure.
+CICD Main Project Taxi Booking
+ 
 
-1.1: Configure local workspace and clone source repository
-Set up the local project folder, initialize Git, and clone the upstream taxi booking application repository.
+1. Create a folder in your local system. ( taxibook )
+ 
+2. Open git bash from that folder.
+ 
+3. Firstly, initialize the git by using the git init command
+4. then clone the repository to your folder by giving the command
+git clone https://github.com/DevopsandMulticloudlearning/CICD_main_Taxibooking_S3_ECR_EKS.git
+ 
+5. It was downloaded to your folder named CICD_main_project_Taxibooking.
+6. Now rename the CICD_main_Taxibooking_S3_ECR_EKS folder name to cicd-taxiapp by giving the command
+ ( mv CICD_main_Taxibooking_S3_ECR_EKS cicd-taxiapp ).
+ 
+7. Goto browser and open your GitHub, Create a new repository with name cicd-taxiapp.
+ 
+ 
+8. Now in git bash do the following commands to push our code to GitHub repository.
+   * cd cicd-taxiapp/
+   * ls 
+   * git remote add origin < (your GitHub repository URL) >.
+     git remote add origin https://github.com/sairamguthula14/cicd-taxiapp.git
+   * git remote set-url origin < (your GitHub repository URL) >. 
+      git remote set-url origin https://github.com/sairamguthula14/cicd-taxiapp.git
+   * git branch -M main (change to the main branch)
+   * git push -u origin main 
+ 
+9. Now refresh the Your GitHub URL , you can seen the files which you are pushed local to remote
+ 
+10. Then open Vs  code to edit the file by giving command (code .)
+ 
+11. In the taskbar you can see that Vs code blinking tab, 
+ 
+ 
+*** Note: In script change the Ami, key name and region. ***
+12. Check if AWS CLI is already installed by using the aws –version command
+ 
+If not installed on your system, then you do the Aws CLI download and configure on the environment variable
+Using MSI Installer (Recommended)
+Download AWS CLI for Windows: https://awscli.amazonaws.com/AWSCLIV2.msi ,Double-click the .msi file ,Follow Next → Install → Finish
+   
+After the installed complited, now you navigated to the file location as below  
+If command not found, you need to configure the aws cli  on environment variables as below steps
+ Control Panel → System → Advanced → Environment Variables
+Add to PATH: C:\Program Files\Amazon\AWSCLIV2\
 
-Create a folder named taxibook on your local system
-Open Git Bash terminal in the taxibook folder
-Initialize Git repository with git init
-Clone the source repository: git clone https://github.com/DevopsandMulticloudlearning/CICD_main_Taxibooking_S3_ECR_EKS.git
-Rename the cloned folder from CICD_main_Taxibooking_S3_ECR_EKS to cicd-taxiapp using mv CICD_main_Taxibooking_S3_ECR_EKS cicd-taxiapp
-1.2: Create GitHub repository and push source code
-Create a new remote GitHub repository and push the local code to establish version control.
+13.now you can create AWS Access Key & aws configure 
+Login AWS Console → Select your account→ Security credentials → Create access key → CLI → Download keys, 
+ 
+14.then Open terminal and run: aws configure  Enter: Access Key → Secret Key → Region (e.g., ap-south-1) → Output 
+ 
+15.Create the aws keypair with the name of taxi , by run the below command
+ 
+EC2 → Key Pairs → Create key pair → Name → PEM → Create
+ 
+16. change the directory to the terraform_files , then run below terraform commands to create infrastructure.
+ 
+    * terraform init
+    * terraform validate
+    * terraform plan
+    * terraform apply
+17. You can check in console now 3 servers are created in console. And also ECR and S3 bucket created with its provides the output
+ 
+Note:- update the ECR URI and S3 bucket information on the jenkins file in the line numbers 11 and 12.
+ 
+18. Now connect to ansible server and install ansible by using below shell script.
+   Create an file and edit by using the command ( vi install_ansible.sh ) and copy & paste the script in that file save and exit by using this command ( esc  :wq!)
+#! /bin/bash
+echo  " Installing Ansible on Ubuntu "
+sudo apt update -y
+sudo apt install -y software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install -y ansible
+ansible --version
+echo  " Ansible Installation Complete "
+   
+provide the permissions [ chmod +x install_ansible.sh ], then run it by using this command ./install_ansible.sh
+ 
+19. Now open Vs terminal in  Ansible/
+change the Private Ip addresses of the master and slave private Ip's and save them all and commit and push it to github
+ 
+20. Now go to Ansible server and give the below commands and run the ansible-playbooks.
+    * sudo -i
+Then, now cloning the repo on the ansible server by using the 
+[ git clone https://github.com/sairamguthula14/cicd-taxiapp.git (your github repository)]
+cd Ansible
+mv hosts  jenkins-master-setup.yaml  jenkins-slave-setup.yaml /opt
+ 
+Create an taxi.pem file on the  /opt directory by using this command [ vi taxi.pem ] and paste the private key into it from the VS code
+chmod 400 /opt/taxi.pem (give only read permissions to taxi.pem file for users)
 
-Navigate to GitHub and create a new repository named cicd-taxiapp
-Change directory to cicd-taxiapp/ folder
-Add the remote origin: git remote add origin <your-github-repo-url>
-Set the remote URL explicitly: git remote set-url origin <your-github-repo-url>
-Switch to main branch: git branch -M main
-Push the code to remote repository: git push -u origin main
-1.3: Install and configure AWS CLI
-Install AWS Command Line Interface and configure credentials for infrastructure provisioning.
+ 21. Now run the below shell script all 3 servers ansible, jenkins master and slave 
+cd 
+sudo -i
+Create an shell file [ vi enable_ssh_password_login.sh ] and run the script by using [ sh enable_ssh_password_login.sh ]
+#!/bin/bash
+set -e
+echo "Setting password for ubuntu user..."
+echo "ubuntu:ubuntu" | chpasswd
+echo "Password set"
+echo "Backing up sshd_config..."
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+echo "Backup created"
+echo "Enabling PasswordAuthentication..."
+sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/^#\?KbdInteractiveAuthentication .*/#KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
+echo "SSH config updated"
+echo "Restarting SSH service..."
+service ssh restart
+echo "SSH restarted"
+echo "Script completed successfully"
 
-Check if AWS CLI is installed with aws --version
-If not installed on Windows, download AWS CLI MSI installer from https://awscli.amazonaws.com/AWSCLIV2.msi
-Run the MSI installer and complete installation
-Add AWS CLI to system PATH: Navigate to Control Panel → System → Advanced → Environment Variables and add C:\Program Files\Amazon\AWSCLIV2\ to PATH
-Log in to AWS Console → Security credentials → Create access key → Select CLI option → Download keys
-Configure AWS CLI by running aws configure and entering Access Key, Secret Key, Region (e.g., us-east-1), and output format
-1.4: Create AWS EC2 key pair
-Generate an EC2 key pair that will be used for SSH access to all EC2 instances.
 
-Navigate to AWS Console → EC2 → Key Pairs → Create key pair
-Enter key pair name as taxi
-Select format as PEM
-Create and download the taxi.pem file to your local system
-Step 2: Infrastructure Provisioning with Terraform
-Deploy the foundational AWS infrastructure including EC2 instances, S3 bucket, and ECR repository.
 
-2.1: Update Terraform configuration with environment-specific values
-Customize the Terraform configuration files with correct AMI ID, key name, and region for your AWS environment.
+22. Now run the below commands to install the scripts by using ansible-playbook commands on ansible server
+cd /opt     
+     ansible all -i hosts -m ping (type yes and yes to continue)
+    ansible-playbook -i hosts jenkins-master-setup.yaml
+    ansible-playbook -i hosts jenkins-slave-setup.yaml
+ 
+23. Now check the installations by connecting to two servers of jenkins-master and build-slave
+    * In jenkins-master server check Jenkins was active status by entering command (systemctl status jenkins)
+ 
+    * In build-slave server check docker and mvn by using below commands
+    * sudo -i    
+ * docker --version
+cd /opt/apache-maven-3.8.9/bin 
+./mvn --version
+ 
+24. create the [ vi  install-eks-tools.sh ]file and paste the below shell script to installing the kubectl and eksctl on Jenkins Slave server
+#!/bin/bash
+set -e
+echo "Installing kubectl..."
+curl -LO https://s3.us-west-2.amazonaws.com/amazon-eks/1.32.9/2025-11-13/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+echo "Installing eksctl..."
+curl -sL https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz | tar xz
+sudo mv eksctl /usr/local/bin/
+echo "kubectl version:"
+kubectl version --client
+echo "eksctl version:"
+eksctl version
+echo "EKS tools installed successfully"
 
-Open VS Code in the project root with code .
-Edit terraform_files/taxi-infra.tf and verify/update the following values:
-AMI ID (line 157, 172, 187): Ensure ami-0030e4319cbf4dbf2 is valid for your region, or replace with appropriate Ubuntu AMI
-Key name (line 159, 174, 189): Verify it references taxi key pair
-Region: Confirm all resources use us-east-1 or your preferred region
-Save all changes
-2.2: Initialize and apply Terraform for EC2 infrastructure
-Execute Terraform commands to provision EC2 instances, security groups, IAM roles, S3 bucket, and ECR repository.
+and run the shell script by using the below command
+chmod +x install-eks-tools.sh
+sh install-eks-tools.sh
+ 
+Install Aws configure on Jenkins Slave server
+vi aws.sh
+echo "   Installing Aws on Ubuntu  "
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo apt install unzip
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+and run the shell script by using the below command
+sh ./aws.sh
+ 
+run: aws configure  Enter: Access Key → Secret Key → Region (e.g., ap-south-1) →
+ 
+EKS Cluster Creation on Jenkins Slave server
+change the directory to the EKS, then run below terraform commands to create infrastructure.
+ 
+    * terraform init
+    * terraform validate
+    * terraform plan
+    * terraform apply
+ 
 
-Change directory to terraform_files/
-Initialize Terraform providers: terraform init
-Validate configuration syntax: terraform validate
-Review execution plan: terraform plan
-Apply the infrastructure changes: terraform apply and confirm with yes
-Note the outputs displayed: s3_bucket name and ecr_repo_url
-Verify in AWS Console that 3 EC2 instances are created: ansible, jenkins-master, jenkins-slave
-Verify S3 bucket my-war-bucket and ECR repository taxi-booking-app are created
-2.3: Update Jenkins pipeline with AWS resource identifiers
-Update the Jenkinsfile with the actual ECR repository URI and S3 bucket name from Terraform outputs.
+After created the Cluster , run the below commands on the slave server
+Update kubeconfig  aws eks update-kubeconfig --region us-east-1 --name taxi-eks-cluster
+Check nodes -> kubectl get nodes
+ 
+------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Edit Jenkinsfile in the project root
-Update line 11: Set S3_BUCKET variable to the S3 bucket name from Terraform output (e.g., my-war-bucket)
-Update line 12: Set ECR_REPO variable to the ECR repository URL from Terraform output (e.g., 642391958117.dkr.ecr.us-east-1.amazonaws.com/taxi-booking-app)
-Commit and push changes to GitHub
-Step 3: Ansible Server Configuration
-Set up the Ansible control node and prepare it to configure Jenkins infrastructure.
+25. Now copy the jenkins-master public ip and go to web browser and paste with port :8080
+ 
+    * copy the /var/lib/jenkins/secrets/initialAdminPassword path and paste in your jenkins-master server by 
+      giving command sudo cat with the path, and copy paste the password to sign up to Jenkins dashboard.
+ 
+ 
+Jenkins Plugins installation
+26. Now in Jenkins dashboard -----> Manage Jenkins -----> Plugins -----> Available Plugins ----->  
+	1. docker pipeline 2. aws credentials 3. amazon ECR  4. Kubernetes cli 5. Pipeline stage view 
+6.pipeline: aws steps-->install now 
+ 
+ Master-slave configuration
+27. Now go to manage Jenkins -----> credentials -----> global -----> kind: SSH username with private key ----->
+    ID: master-slave -----> Description: master-slave configuration -----> username: ubuntu -----> enter directly
+    in that copy and paste taxi.pem key.
+ 
+  
+28. Now goto manage Jenkins -----> nodes -----> Name: taxi-app -----> description: master-slave configuration
+    -----> Number of executors: 3 -----> Remote root directory: /home/ubuntu/jenkins -----> Labels: maven
+    -----> Usage: Use this node as much as possible -----> Launch method: Launch agents via SSH ----->
+    Host: Private ip of build slave -----> Credentials: we added credentials -----> Host Key Verification Strategy:
+    Non verifying Verification strategy -----> Availability: Keep this agent online as much as possible
+ 
+29. Generate the token for this go to GitHub -----> Profile -----> Settings -----> left side scroll down at 
+    last you have Developer Settings -----> Personal Access token (classic) -----> Generate New Token (classic) -----> In Note name as GitHub Token -----> Check all the boxes and Generate token and copy & paste to your notepad and commit and push to GitHub
+     GitHub token : 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
 
-3.1: Install Ansible on the Ansible server
-Connect to the Ansible EC2 instance and install Ansible using automation script.
+30. Now Sign in to Jenkins Dashboard -----> Manage Jenkins -----> Credentials -----> Kind: Username with Password -----> username: GitHub -----> password: Paste the
+    generated GitHub token -----> ID: GitHubcred -----> Description -----> GitHub credentials -----> Create
+ 
+31. Now in Jenkins Dashboard -----> New Item -----> Name: taxi-booking -----> Select Pipeline -----> Create
+ 
+32. Configure ------> Description: master slave with Jenkins and maven -----> Select Discard old builds -----> In Max # of builds to keep: 4 ------> Pipeline
+ 
+    -----> Definition: Pipeline Script from SCM -----> Repository URL: your GitHub project URL -----> Credentials: Select added GitHub credentials ----->
+ 
+    Branch Specifier: */main -----> Script Path: Jenkinsfile -----> Apply & Save ----> Click on Build Now
+ 
 
-SSH into the ansible server using its public IP and taxi.pem key
-Create installation script: vi install_ansible.sh
-Paste the Ansible installation script contents and save (:wq!)
-Make script executable: chmod +x install_ansible.sh
-Execute the installation script: ./install_ansible.sh
-Verify installation with ansible --version
-3.2: Update Ansible inventory with private IPs
-Configure the Ansible hosts file with the private IP addresses of Jenkins master and slave servers.
+33. Now Add Webhooks to trigger Automatically for this go to GitHub and your repository cicd-taxiapp -----> Settings -----> Webhooks -----> Add Webhook
+    -----> Content type: application/Json -----> Payload URL: http://3.108.228.162(your jenkins public ip):8080//github-webhook/ -----> Add Webhook
+ 
+34. Now go to Jenkins Dashboard -----> taxi-booking -----> Configure -----> Build Triggers: GitHub hook trigger for GITScm polling -----. Apply & save
+ 
+35. Now we need to do Code Analysis test by using Sonarcloud for this go to google take new tab and search for Sonarcloud.io
+36. Sign in by using GitHub credentials and login to GitHub, Right side above you have      '+' symbol -----> 
+ 
+Create new organization -----> Click on create one manually -----> Enter Organization name-: taxi-app and choose plan select free plan and click on create organization
+   
+ 37. Now click on Analyze project in Myprojects -----> give display name – taxi-app and project key will generated automatcically , select public radio buton and click on Next
+  
+Now we get another page Set up Project where we need to select previous version and create a project 
+Choose Your Analysis Method and select manually and click on Maven 
+ 
+-----> now select Manually -----> Maven ------> It will give the details take the details Copy and paste.
+ 
+    * SONAR_TOKEN
+    * 47621294ec4920503da3346cf1e96ee15bce81ac
+<properties>
+  <sonar.organization>taxi-app-taxi-app</sonar.organization>
+</properties> 
+mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=taxi-app-taxi-app_taxi 
+38. In Jenkins file  After test stage that is step no36 and 37 ,update the project key and Oraganization details
+    
+39. Now add another credential in Jenkins Dashboard -----> Manage Jenkins -----> Credentials -----> Kind: Secret text -----> Copy and Paste the token which was in 37th point -----> 
+    ID: SONAR_TOKEN -----> Description: sonar credentials
+ 
+40. Now save the pipeline commit and push to GitHub it will automatically trigger and build the pipeline 
+ 
+41. Now open jenkins slave server verify the docker images is created by using the docker images command
+ 
+42.runn the docker image to create an container to view the application on web browser
+    * sudo docker run -dt --name taxiapp -p 8000:8080 642391958117.dkr.ecr.us-east-1.amazonaws.com/taxi-booking-app:v1.2
+ Note:-change the image name as per your image name.
+ 
+ 
+    * by giving this url can see the webpage of taxi-booking, http://13.232.154.85(your build-slave publicip):8000/taxi-booking-1.0.1/
+ 
 
-In VS Code terminal, navigate to Ansible/ directory
-Edit Ansible/hosts file
-Update line 2 with the private IP address of jenkins-master EC2 instance
-Update line 9 with the private IP address of jenkins-slave EC2 instance
-Save the file, commit, and push to GitHub
-3.3: Prepare Ansible playbooks and SSH configuration
-Clone the repository on Ansible server and configure SSH access for playbook execution.
+43. now verify the versions of both kubectl and eksctl by using the below commands on jenkins slave server
+kubectl version --client
+eksctl version
+     aws configure  Enter: Access Key → Secret Key → Region (e.g., us-east-1) → Output
 
-SSH into ansible server and switch to root: sudo -i
-Clone your GitHub repository: git clone <your-github-repo-url>
-Change directory to cicd-taxiapp/Ansible
-Move Ansible files to /opt directory: mv hosts jenkins-master-setup.yaml jenkins-slave-setup.yaml /opt
-Create PEM key file: vi /opt/taxi.pem
-Paste the contents of your taxi.pem private key and save
-Set restrictive permissions on key: chmod 400 /opt/taxi.pem
-3.4: Enable SSH password authentication on all servers
-Run script on all three servers (Ansible, Jenkins master, Jenkins slave) to enable password-based SSH for Ansible connectivity.
+      aws eks update-kubeconfig --region us-east-1 --name taxi-eks-cluster
+     aws eks --region us-east-1 describe-cluster --name taxi-eks-cluster --query cluster.status
+     kubectl get nodes
+ 
+44. Now install helm in your Jenkins-slave server by using below commands
+[ vi install_helm.sh ] run this script [ sh install_helm.sh ]
+#!/bin/bash
+set -e   
+echo " Downloading Helm install script..."
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+echo "Setting execute permission..."
+chmod 700 get_helm.sh
+echo "Installing Helm..."
+./get_helm.sh
+echo "Verifying Helm installation..."
+helm version
+echo "Listing installed Helm releases..."
+helm list
+echo " Adding stable Helm repository..."
+helm repo add stable https://charts.helm.sh/stable
+echo "Listing Helm repositories..."
+helm repo list
+echo "Searching for Jenkins chart..."
+helm search repo jenkins
+echo "Helm installation and setup completed successfully!"
+ 
+45.Create the taxi namespace
+ kubectl create ns taxi
 
-On each of the three servers (ansible, jenkins-master, jenkins-slave), execute the following steps:
-SSH into the server and switch to root: sudo -i
-Create script file: vi enable_ssh_password_login.sh
-Paste the SSH configuration script that sets ubuntu user password to ubuntu, enables PasswordAuthentication in /etc/ssh/sshd_config, and restarts SSH service
-Execute the script: sh enable_ssh_password_login.sh
-Verify SSH service restarted successfully
-3.5: Execute Ansible playbooks to configure Jenkins infrastructure
-Run Ansible playbooks from the Ansible server to install and configure Jenkins master and slave.
+ 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-On ansible server, change to /opt directory: cd /opt
-Test Ansible connectivity to all hosts: ansible all -i hosts -m ping (enter yes for SSH fingerprint prompts and ubuntu as password)
-Execute Jenkins master playbook: ansible-playbook -i hosts jenkins-master-setup.yaml
-Execute Jenkins slave playbook: ansible-playbook -i hosts jenkins-slave-setup.yaml
-Verify playbooks complete successfully without errors
-3.6: Verify Jenkins and build tools installation
-Connect to Jenkins master and slave servers to confirm services and tools are installed correctly.
+46. Now we are creating service monitoring tools by using below commands in the slave server
+vi install_monitoring.sh     chmod +x install_monitoring.sh run this ./install_monitoring.sh
+#!/bin/bash
+set -e   # Exit if any command fails
+NAMESPACE="monitoring"
+HELM_REPO_NAME="prometheus-grafana-community"
+HELM_REPO_URL="https://prometheus-community.github.io/helm-charts"
+CHART_NAME="kube-prometheus-stack"
+echo " Creating namespace (if not exists)..."
+kubectl create namespace $NAMESPACE || echo "Namespace already exists"
+echo " Listing Helm repositories..."
+helm repo list
+echo "Adding Prometheus Helm repository..."
+helm repo add $HELM_REPO_NAME $HELM_REPO_URL || echo "Repo already exists"
+echo "Updating Helm repositories..."
+helm repo update
+echo "Pulling Helm chart..."
+helm pull $HELM_REPO_NAME/$CHART_NAME
+echo "Extracting chart..."
+tar -xzvf ${CHART_NAME}-*.tgz
+echo "Navigating to chart directories..."
+cd $CHART_NAME/templates
+ls
+echo "Installing Prometheus + Grafana..."
+helm install prometheus $HELM_REPO_NAME/$CHART_NAME --namespace $NAMESPACE
+echo "Returning to home directory..."
+cd ~
+echo "Verifying Kubernetes resources..."
+kubectl get all
+kubectl get all -n $NAMESPACE
+echo "Monitoring stack installed successfully!"
+enter the below command
+kubectl get all -n monitoring
+ 
 
-SSH into jenkins-master server
-Check Jenkins service status: systemctl status jenkins (should show active/running)
-SSH into jenkins-slave server and switch to root: sudo -i
-Verify Docker installation: docker --version
-Verify Maven installation: cd /opt/apache-maven-3.8.9/bin && ./mvn --version
-Step 4: Build Slave Additional Tooling
-Install Kubernetes CLI tools, AWS CLI, and provision the EKS cluster from the Jenkins slave server.
+47.Now deploy via direct pipeline with jenkins
 
-4.1: Install kubectl and eksctl on Jenkins slave
-Install Kubernetes command-line tools required for EKS cluster management and deployment.
+copy the deploy namespace, service, secret, deployment files to creating the file [ deploy.sh ]
 
-SSH into jenkins-slave server and switch to root: sudo -i
-Create installation script: vi install-eks-tools.sh
-Paste the EKS tools installation script that downloads kubectl (version 1.32.9) and eksctl (latest release) and moves them to /usr/local/bin/
-Make script executable: chmod +x install-eks-tools.sh
-Execute the script: sh install-eks-tools.sh
-Verify installations: kubectl version --client and eksctl version
-4.2: Install AWS CLI on Jenkins slave
-Install AWS Command Line Interface on the build slave for ECR authentication and EKS cluster access.
+#!/bin/bash
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/namespace.yaml  
+ 
 
-On jenkins-slave server, create AWS CLI installation script: vi aws.sh
-Paste the AWS CLI installation script that downloads the Linux installer, extracts it, and installs to /usr/local/bin/
-Execute the script: sh ./aws.sh
-Verify installation: aws --version
-Configure AWS credentials: aws configure and enter Access Key, Secret Key, Region (us-east-1), and output format
-4.3: Provision EKS cluster using Terraform
-Create the Kubernetes cluster on AWS EKS with node group for application deployment.
+Updated the deployment file , in the line 20 , image from the step number :41 
 
-On jenkins-slave server, clone your GitHub repository if not already present: git clone <your-github-repo-url>
-Change directory to cicd-taxiapp/EKS
-Initialize Terraform: terraform init
-Validate configuration: terraform validate
-Review execution plan: terraform plan
-Apply the EKS infrastructure: terraform apply and confirm with yes
-Wait for cluster creation to complete (approximately 10-15 minutes)
-Note the cluster name from output: taxi-eks-cluster
-4.4: Configure kubectl access to EKS cluster
-Update kubeconfig to enable kubectl commands to interact with the newly created EKS cluster.
+now to commit and push the files to github we need to give the permission , open VS code terminal as Gitbash 
+chmod +x deploy.sh
+ 
 
-On jenkins-slave server, update kubeconfig: aws eks update-kubeconfig --region us-east-1 --name taxi-eks-cluster
-Verify cluster status: aws eks --region us-east-1 describe-cluster --name taxi-eks-cluster --query cluster.status (should return ACTIVE)
-List cluster nodes: kubectl get nodes (should show 2 nodes in Ready state)
-4.5: Install Helm package manager
-Install Helm 3 on the Jenkins slave for managing Kubernetes applications and charts.
+copy & paste the deploy stage pipeline code to the Jenkinsfile.
+stage(" Deploy ") {
+       steps {
+         script {
+            sh 'chmod +x deploy.sh'
+            sh './deploy.sh'
+         }
+       }
+     }
 
-On jenkins-slave server, create Helm installation script: vi install_helm.sh
-Paste the Helm installation script that downloads the official Helm installer script, makes it executable, runs it, and adds stable Helm repository
-Make script executable: chmod +x install_helm.sh
-Execute the script: sh install_helm.sh
-Verify Helm installation: helm version and helm list
-4.6: Create Kubernetes namespace for application
-Create a dedicated namespace for the taxi booking application resources in the EKS cluster.
+Commit and push it will automatically build the stage
 
-On jenkins-slave server, create namespace: kubectl create ns taxi
-Verify namespace creation: kubectl get ns (should show taxi namespace)
-Step 5: Jenkins Configuration and Pipeline Setup
-Configure Jenkins with required plugins, credentials, master-slave architecture, and create the CI/CD pipeline.
+54. enter the below command
+kubectl get all -n taxi
+ 
 
-5.1: Access Jenkins and complete initial setup
-Access the Jenkins web interface and unlock Jenkins using the initial admin password.
+54. enter the below command
+kubectl get all -n monitoring
+ 
 
-Copy the public IP address of jenkins-master server
-Open web browser and navigate to http://<jenkins-master-public-ip>:8080
-SSH into jenkins-master server
-Retrieve initial admin password: sudo cat /var/lib/jenkins/secrets/initialAdminPassword
-Copy the password and paste it in the Jenkins unlock page
-Complete the initial setup wizard
-5.2: Install required Jenkins plugins
-Install Jenkins plugins necessary for Docker, AWS, Kubernetes, and pipeline functionality.
+55. Now edit the type ClusterIP to LoadBalancer by using the below command
+kubectl edit svc prometheus-kube-prometheus-prometheus -n monitoring
+Again enter the below command
+kubectl get all -n monitoring
 
-In Jenkins dashboard, navigate to Manage Jenkins → Plugins → Available Plugins
-Search for and select the following plugins:
-Docker Pipeline
-AWS Credentials
-Amazon ECR
-Kubernetes CLI
-Pipeline Stage View
-Pipeline: AWS Steps
-Click Install and wait for installation to complete
-Restart Jenkins if prompted
-5.3: Configure Jenkins master-slave credentials
-Create SSH credentials in Jenkins for master-slave communication using the taxi PEM key.
+56.Now copy the DNS entry and search it in browser no need of port number as it defaults takes 80 for Grafana and Prometheus having port number 9090
 
-In Jenkins dashboard, navigate to Manage Jenkins → Credentials → System → Global credentials → Add Credentials
-Select Kind: SSH username with private key
-Set ID to master-slave
-Set Description to master-slave configuration
-Set Username to ubuntu
-Select Enter directly for private key
-Paste the contents of taxi.pem key
-Click Create
-5.4: Configure Jenkins slave node
-Add the build slave as a Jenkins agent node with Maven label for distributed builds.
+For Grafana:-
+username - admin
+password - we need to generate the password by using the below command
+kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode; echo
+( jO5zIlPUYFifRltN3Wo5Qsj0ncGQMTMRpgljmlrj )
+  
+Verify the nodes and pods status on the grafana
 
-In Jenkins dashboard, navigate to Manage Jenkins → Nodes → New Node
-Set Name to taxi-app
-Set Description to master-slave configuration
-Set Number of executors to 3
-Set Remote root directory to /home/ubuntu/jenkins
-Set Labels to maven
-Set Usage to Use this node as much as possible
-Set Launch method to Launch agents via SSH
-Set Host to the private IP address of jenkins-slave
-Select Credentials: ubuntu (master-slave)
-Set Host Key Verification Strategy to Non verifying Verification Strategy
-Set Availability to Keep this agent online as much as possible
-Click Save
-Verify the node connects successfully and shows as online
-5.5: Create GitHub Personal Access Token
-Generate a GitHub personal access token for Jenkins to access the repository via API.
 
-Log in to GitHub
-Navigate to Settings → Developer settings → Personal access tokens → Tokens (classic)
-Click Generate new token (classic)
-Set Note to GitHub Token
-Select all scopes/permissions
-Click Generate token
-Copy the generated token immediately and save it securely
-5.6: Configure GitHub credentials in Jenkins
-Add GitHub personal access token as credentials in Jenkins for repository access.
+53. kubectl get all -n taxi , Now by using load balancer dns name access the webpage
+  http://a114b7beaec3649f380222bdeab4adf8-1112331358.us-east-1.elb.amazonaws.com:8001/taxi-booking-1.0.1/
 
-In Jenkins dashboard, navigate to Manage Jenkins → Credentials → System → Global credentials → Add Credentials
-Select Kind: Username with password
-Set Username to GitHub
-Set Password to the GitHub personal access token from previous step
-Set ID to GitHubcred
-Set Description to GitHub credentials
-Click Create
-5.7: Configure SonarCloud for code quality analysis
-Set up SonarCloud organization and project, then add credentials to Jenkins.
+* After your project completion, we have to destroy/uninstall servers & Cluster for this go to your project where your terraform code was executed and open git bash here type
+1. kubectl delete ns taxi monitoring ( run on the slave server)
+Note: after step 1 completed then proceed with 2nd step.
+2. terraform destroy --auto-approve   (run on VS code under terraform_files folder) 
+Note: after step 2 completed then proceed with 3rd step.
+3. terraform destroy --auto-approve   (run on VS code under EKS  folder)
 
-Open browser and navigate to https://sonarcloud.io
-Sign in using GitHub credentials
-Click + symbol and select Create new organization
-Click create one manually
-Enter Organization name as taxi-app and choose Free plan
-Click Create organization
-Click Analyze new project and set display name as taxi-app
-Project key will be auto-generated (e.g., taxi-app-taxi-app_taxi)
-Select Public and click Next
-On Set up Project page, select Previous version and click Create project
-Choose analysis method as Manually → Maven
-Copy the SONAR_TOKEN value displayed
-Copy the sonar.organization and sonar.projectKey values
-In Jenkins, navigate to Manage Jenkins → Credentials → System → Global credentials → Add Credentials
-Select Kind: Secret text
-Paste the SONAR_TOKEN as secret
-Set ID to SONAR_TOKEN
-Set Description to sonar credentials
-Click Create
-5.8: Update Jenkinsfile with SonarCloud configuration
-Modify the pipeline configuration with SonarCloud project key and organization details.
+OUTPUTS:
 
-In VS Code, edit Jenkinsfile
-Update line 37: Set -Dsonar.projectKey= to the project key from SonarCloud (e.g., taxi-app-taxi-app_taxi)
-Update line 38: Set -Dsonar.organization= to the organization from SonarCloud (e.g., taxi-app-taxi-app)
-Verify line 40 references the SONAR_TOKEN credential
-Commit and push changes to GitHub
-5.9: Create Jenkins pipeline job
-Create a new Jenkins pipeline that builds from the GitHub repository using the Jenkinsfile.
+   <img width="1908" height="619" alt="Screenshot 2026-03-22 171618" src="https://github.com/user-attachments/assets/df5cdb4e-9c6e-4d8f-87a0-909041a11ae2" />
+   <img width="1909" height="607" alt="Screenshot 2026-03-22 171637" src="https://github.com/user-attachments/assets/e3fbb6b3-7162-4821-8fa0-6ccd777516da" />
+   <img width="1911" height="827" alt="Screenshot 2026-03-22 171947" src="https://github.com/user-attachments/assets/f08efa37-f6cc-42c4-ba25-a6d0f6f8f6b2" />
+   <img width="1907" height="958" alt="Screenshot 2026-04-06 182511" src="https://github.com/user-attachments/assets/c5b2327e-8494-4b30-8c33-3bf5291086d3" />
+   <img width="1904" height="964" alt="Screenshot 2026-04-06 185931" src="https://github.com/user-attachments/assets/28b3d16d-324d-48ea-a7f8-98fe27a6491f" />
+   <img width="1911" height="958" alt="Screenshot 2026-04-06 184956" src="https://github.com/user-attachments/assets/8eb3bd34-8384-4cbf-acb0-091278229c66" />
+   <img width="1908" height="985" alt="Screenshot 2026-04-06 185016" src="https://github.com/user-attachments/assets/4f5dcf9f-5ad3-4966-8962-bce314d380d8" />
+   <img width="1887" height="923" alt="Screenshot 2026-04-06 185231" src="https://github.com/user-attachments/assets/fdfc2b4f-4cb7-4b1f-8fc0-3da952cb77ac" />
 
-In Jenkins dashboard, click New Item
-Enter name as taxi-booking
-Select Pipeline as job type
-Click OK
-In Description, enter master slave with Jenkins and maven
-Check Discard old builds and set Max # of builds to keep to 4
-Under Pipeline section, set Definition to Pipeline script from SCM
-Set SCM to Git
-Set Repository URL to your GitHub repository URL
-Set Credentials to GitHub (GitHubcred)
-Set Branch Specifier to */main
-Set Script Path to Jenkinsfile
-Click Apply and Save
-5.10: Configure GitHub webhook for automatic builds
-Set up a webhook in GitHub to trigger Jenkins builds automatically on code push.
 
-Navigate to your GitHub repository
-Go to Settings → Webhooks → Add webhook
-Set Payload URL to http://<jenkins-master-public-ip>:8080/github-webhook/
-Set Content type to application/json
-Click Add webhook
-In Jenkins pipeline taxi-booking, click Configure
-Under Build Triggers, check GitHub hook trigger for GITScm polling
-Click Apply and Save
-5.11: Execute initial pipeline build and verify
-Trigger the first pipeline build manually and verify all stages complete successfully.
 
-In Jenkins dashboard, open the taxi-booking pipeline
-Click Build Now
-Monitor the build progress through the stage view
-Verify all stages complete: build, test, SonarQube Analysis, Upload WAR to S3, Build Docker Image, Login to ECR, Tag Image, Push to ECR, Deploy
-Check SonarCloud dashboard for code quality metrics
-Verify WAR file uploaded to S3 bucket
-Verify Docker image pushed to ECR repository
-Step 6: Application Verification and Monitoring Setup
-Verify the application deployment, configure monitoring stack, and access the taxi booking application.
 
-6.1: Verify application deployment on EKS
-Check that the application pods and services are running correctly in the EKS cluster.
 
-SSH into jenkins-slave server
-Check taxi namespace resources: kubectl get all -n taxi
-Verify 2 replicas of taxi-booking deployment are running
-Verify taxi-booking-service LoadBalancer service is created with external DNS
-Copy the LoadBalancer DNS name from the EXTERNAL-IP column
-6.2: Access taxi booking application
-Open the taxi booking web application in a browser to confirm successful deployment.
 
-Open web browser
-Navigate to http://<loadbalancer-dns>:8001/taxi-booking-1.0.1/
-Verify the taxi booking homepage loads successfully with all assets (images, CSS, JavaScript)
-Test navigation through different pages (about, cars, drivers, contact, etc.)
-6.3: Install Prometheus and Grafana monitoring stack
-Deploy the Prometheus and Grafana monitoring solution on EKS using Helm.
 
-SSH into jenkins-slave server
-Create monitoring installation script: vi install_monitoring.sh
-Paste the monitoring installation script that creates monitoring namespace, adds Prometheus Helm repository, pulls kube-prometheus-stack chart, and installs it
-Make script executable: chmod +x install_monitoring.sh
-Execute the script: ./install_monitoring.sh
-Verify monitoring resources: kubectl get all -n monitoring
-Confirm Prometheus and Grafana pods are in Running state
-6.4: Expose Prometheus service externally
-Change the Prometheus service type to LoadBalancer to access the Prometheus UI externally.
 
-On jenkins-slave server, edit Prometheus service: kubectl edit svc prometheus-kube-prometheus-prometheus -n monitoring
-Locate the spec.type field and change value from ClusterIP to LoadBalancer
-Save and exit the editor
-Wait for AWS to provision the LoadBalancer (1-2 minutes)
-Check service status: kubectl get svc -n monitoring | grep prometheus
-Copy the LoadBalancer DNS for prometheus-kube-prometheus-prometheus service
-6.5: Access Prometheus monitoring interface
-Open Prometheus web UI to view metrics and monitoring data.
 
-Open web browser
-Navigate to http://<prometheus-loadbalancer-dns>:9090
-Verify Prometheus UI loads successfully
-Explore targets, alerts, and metrics in the interface
-6.6: Access Grafana monitoring dashboards
-Log in to Grafana and verify pre-configured Kubernetes monitoring dashboards.
 
-Open web browser
-Navigate to http://<grafana-loadbalancer-dns> (port 80, already configured in service)
-Login with username admin
-Retrieve Grafana admin password: kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode; echo
-Enter the decoded password and log in
-Navigate to Dashboards section
-Verify pre-configured Kubernetes dashboards are available (Nodes, Pods, Cluster)
-Check that metrics are being collected and displayed for the EKS cluster and taxi application
-Step 7: [NO-CODE-CHANGE] Infrastructure Teardown
-Clean up all AWS resources to avoid ongoing costs after project completion.
-
-7.1: [NO-CODE-CHANGE] Delete Kubernetes resources
-Remove all Kubernetes namespaces and resources from the EKS cluster.
-
-SSH into jenkins-slave server
-Delete taxi namespace and all resources: kubectl delete ns taxi
-Delete monitoring namespace and all resources: kubectl delete ns monitoring
-Wait for all resources to be fully deleted (verify with kubectl get all -n taxi and kubectl get all -n monitoring returning not found)
-7.2: [NO-CODE-CHANGE] Destroy EKS cluster
-Tear down the EKS cluster infrastructure using Terraform destroy.
-
-On jenkins-slave server, change directory to cicd-taxiapp/EKS
-Run Terraform destroy: terraform destroy --auto-approve
-Wait for EKS cluster and node groups to be completely deleted (10-15 minutes)
-Verify in AWS Console that EKS cluster is removed
-7.3: [NO-CODE-CHANGE] Destroy EC2 infrastructure
-Tear down all EC2 instances, S3 bucket, ECR repository, and related resources using Terraform destroy.
-
-On your local machine or any server with the Terraform state, change directory to terraform_files/
-Run Terraform destroy: terraform destroy --auto-approve
-Wait for all resources to be deleted: EC2 instances, security groups, IAM roles, S3 bucket, ECR repository
-Verify in AWS Console that all resources are removed
-Optionally delete the taxi EC2 key pair from AWS Console if no longer needed
